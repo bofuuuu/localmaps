@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanjirappally Carbon Emission Map</title>
+    <!-- Leaflet.js CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+    <style>
+        /* Basic styling for the map and search bar */
+        #map {
+            height: 80vh;
+            width: 100%;
+        }
+        #searchBar {
+            margin-top: 10px;
+            padding: 10px;
+        }
+        #searchBar input {
+            padding: 8px;
+            font-size: 16px;
+            width: 200px;
+        }
+        #searchBar button {
+            padding: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="searchBar">
+        <input type="text" id="locationInput" placeholder="Search for a location...">
+        <button onclick="searchLocation()">Search</button>
+    </div>
+    
+    <div id="map"></div>
+
+    <!-- Leaflet.js JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    
+    <script>
+        // Sample data for Kanjirappally regions with carbon emission levels
+        const locations = [
+            { name: 'Cheruvallikavu', lat: 9.5600, lng: 76.7800, emission: 'low' },
+            { name: 'Poovathummoodu', lat: 9.5550, lng: 76.7856, emission: 'high' },
+            { name: 'Ponkunnam', lat: 9.6000, lng: 76.8000, emission: 'low' },
+            { name: 'Mundakayam', lat: 9.5220, lng: 76.8700, emission: 'high' },
+            { name: 'Chakkikavu', lat: 9.5800, lng: 76.8200, emission: 'low' },
+            // Add more locations as needed
+        ];
+
+        // Initialize the map
+        const map = L.map('map').setView([9.5550, 76.7856], 12);
+
+        // Set up the tile layer from OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Function to add markers based on location data
+        locations.forEach(location => {
+            const color = location.emission === 'high' ? 'red' : 'green';
+            const marker = L.circleMarker([location.lat, location.lng], {
+                radius: 10,
+                color: color,
+                fillColor: color,
+                fillOpacity: 0.8
+            }).addTo(map).bindPopup('<strong>${location.name}</strong><br>Carbon Emission: ${location.emission}'
+            );
+        });
+
+        // Search function to find and zoom to the location
+        function searchLocation() {
+            const input = document.getElementById('locationInput').value.toLowerCase();
+            const location = locations.find(loc => loc.name.toLowerCase() === input);
+
+            if (location) {
+                // Zoom in and center to the searched location
+                map.setView([location.lat, location.lng], 14);
+            } else {
+                alert("Location not found. Please try again.");
+            }
+        }
+    </script>
+</body>
+</html>

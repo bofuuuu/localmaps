@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanjirappally Carbon Emission Map</title>
+    <!-- Leaflet.js CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+    <style>
+        /* Basic styling for the map and search bar */
+        #map {
+            height: 80vh;
+            width: 100%;
+        }
+        #searchBar {
+            margin-top: 10px;
+            padding: 10px;
+        }
+        #searchBar input {
+            padding: 8px;
+            font-size: 16px;
+            width: 200px;
+        }
+        #searchBar button {
+            padding: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="searchBar">
+        <input type="text" id="locationInput" placeholder="Search for a location...">
+        <button onclick="searchLocation()">Search</button>
+    </div>
+    
+    <div id="map"></div>
+
+    <!-- Leaflet.js JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    
+    <script>
+        // Sample data for Kanjirappally regions with carbon emission levels
+        const locations = [
+  
+    { name: 'Thiruvananthapuram', lat: 8.5241, lng: 76.9366, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Kochi', lat: 9.9312, lng: 76.2673, emission: 'high', me: 'high', ni: 'medium' },
+    { name: 'Kozhikode', lat: 11.2588, lng: 75.7804, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Kollam', lat: 8.8932, lng: 76.6141, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Kottayam', lat: 9.5916, lng: 76.5222, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Alappuzha', lat: 9.4981, lng: 76.3388, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Thrissur', lat: 10.5276, lng: 76.2144, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Palakkad', lat: 10.7867, lng: 76.6548, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Kannur', lat: 11.8745, lng: 75.3704, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Pathanamthitta', lat: 9.2647, lng: 76.7872, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Malappuram', lat: 11.0735, lng: 76.0745, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Idukki', lat: 9.9187, lng: 77.1025, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Kasargod', lat: 12.4996, lng: 75.0269, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Wayanad', lat: 11.6854, lng: 76.1320, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Varkala', lat: 8.7379, lng: 76.7163, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Punalur', lat: 9.0167, lng: 76.9326, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Muvattupuzha', lat: 9.9797, lng: 76.5780, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Perinthalmanna', lat: 10.9767, lng: 76.2250, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Attingal', lat: 8.6959, lng: 76.8151, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Chengannur', lat: 9.3158, lng: 76.6150, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Cherthala', lat: 9.6886, lng: 76.3055, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Adoor', lat: 9.1532, lng: 76.7285, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Guruvayur', lat: 10.5921, lng: 76.0414, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Manjeri', lat: 11.1222, lng: 76.1195, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Ponnani', lat: 10.7662, lng: 75.9257, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Tirur', lat: 10.9165, lng: 75.9187, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Chalakudy', lat: 10.3076, lng: 76.3375, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Vadakara', lat: 11.6094, lng: 75.5914, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Kanjirappally', lat: 9.5556, lng: 76.7792, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Kunnamkulam', lat: 10.6426, lng: 76.0654, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Chavakkad', lat: 10.5396, lng: 76.0571, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Kothamangalam', lat: 10.0640, lng: 76.6292, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Neyyattinkara', lat: 8.3982, lng: 77.0858, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Kozhenchery', lat: 9.3420, lng: 76.7093, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Aluva', lat: 10.1076, lng: 76.3516, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Mannar', lat: 9.3261, lng: 76.5201, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Kalpetta', lat: 11.6101, lng: 76.0826, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Sultan Bathery', lat: 11.6739, lng: 76.2561, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Erattupetta', lat: 9.6877, lng: 76.7801, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Angamaly', lat: 10.1905, lng: 76.3889, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Kumarakom', lat: 9.6173, lng: 76.4339, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Mavelikkara', lat: 9.2595, lng: 76.5563, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Cherpulassery', lat: 10.8784, lng: 76.3094, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Kodungallur', lat: 10.2224, lng: 76.2013, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Kayamkulam', lat: 9.1769, lng: 76.5005, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Pala', lat: 9.7017, lng: 76.6825, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Shoranur', lat: 10.7596, lng: 76.2708, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Mundakayam', lat: 9.5220, lng: 76.8700, emission: 'high', me: 'high', ni: 'medium' },
+
+
+
+
+
+   
+
+    { name: 'Thiruvananthapuram', lat: 8.5241, lng: 76.9366, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Kochi', lat: 9.9312, lng: 76.2673, emission: 'high', me: 'high', ni: 'medium' },
+    { name: 'Kozhikode', lat: 11.2588, lng: 75.7804, emission: 'medium', me: 'medium', ni: 'low' },
+    { name: 'Kollam', lat: 8.8932, lng: 76.6141, emission: 'medium', me: 'medium', ni: 'low' },
+    { name: 'Kottayam', lat: 9.5916, lng: 76.5222, emission: 'medium', me: 'medium', ni: 'low' },
+    { name: 'Alappuzha', lat: 9.4981, lng: 76.3388, emission: 'medium', me: 'medium', ni: 'low' },
+    { name: 'Thrissur', lat: 10.5276, lng: 76.2144, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Palakkad', lat: 10.7867, lng: 76.6548, emission: 'medium', me: 'high', ni: 'medium' },
+    { name: 'Kannur', lat: 11.8745, lng: 75.3704, emission: 'medium', me: 'medium', ni: 'low' },
+    { name: 'Pathanamthitta', lat: 9.2647, lng: 76.7872, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Malappuram', lat: 11.0735, lng: 76.0745, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Idukki', lat: 9.9187, lng: 77.1025, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Kasargod', lat: 12.4996, lng: 75.0269, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Wayanad', lat: 11.6854, lng: 76.1320, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Varkala', lat: 8.7379, lng: 76.7163, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Punalur', lat: 9.0167, lng: 76.9326, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Muvattupuzha', lat: 9.9797, lng: 76.5780, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Perinthalmanna', lat: 10.9767, lng: 76.2250, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Attingal', lat: 8.6959, lng: 76.8151, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Chengannur', lat: 9.3158, lng: 76.6150, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Cherthala', lat: 9.6886, lng: 76.3055, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Adoor', lat: 9.1532, lng: 76.7285, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Guruvayur', lat: 10.5921, lng: 76.0414, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Manjeri', lat: 11.1222, lng: 76.1195, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Ponnani', lat: 10.7662, lng: 75.9257, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Tirur', lat: 10.9165, lng: 75.9187, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Chalakudy', lat: 10.3076, lng: 76.3375, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Vadakara', lat: 11.6094, lng: 75.5914, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Kanjirappally', lat: 9.5556, lng: 76.7792, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Angamaly', lat: 10.1905, lng: 76.3889, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Erattupetta', lat: 9.6877, lng: 76.7801, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Kumarakom', lat: 9.6173, lng: 76.4339, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Mavelikkara', lat: 9.2595, lng: 76.5563, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Cherpulassery', lat: 10.8784, lng: 76.3094, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Shoranur', lat: 10.7596, lng: 76.2708, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Chittur', lat: 10.6941, lng: 76.7427, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Kalpetta', lat: 11.6101, lng: 76.0826, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Sultan Bathery', lat: 11.6739, lng: 76.2561, emission: 'low', me: 'low', ni: 'low' },
+
+
+    { name: 'Kochi', lat: 9.9312, lng: 76.2673, emission: 'high', me: 'high', ni: 'medium' },
+    { name: 'Kottayam', lat: 9.5916, lng: 76.5222, emission: 'medium', me: 'medium', ni: 'low' },
+    { name: 'Changanassery', lat: 9.4424, lng: 76.5367, emission: 'medium', me: 'medium', ni: 'low' },
+    { name: 'Pala', lat: 9.7017, lng: 76.6825, emission: 'medium', me: 'medium', ni: 'low' },
+    { name: 'Kanjirappally', lat: 9.5556, lng: 76.7792, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Ettumanoor', lat: 9.6686, lng: 76.5654, emission: 'medium', me: 'medium', ni: 'low' },
+    { name: 'Vaikom', lat: 9.7471, lng: 76.3966, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Kumarakom', lat: 9.6173, lng: 76.4339, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Puthuppally', lat: 9.5781, lng: 76.5862, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Erattupetta', lat: 9.6877, lng: 76.7801, emission: 'medium', me: 'medium', ni: 'low' },
+    { name: 'Kuravilangad', lat: 9.7584, lng: 76.6164, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Manarcaud', lat: 9.5805, lng: 76.6077, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Ramapuram', lat: 9.7291, lng: 76.6553, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Mundakayam', lat: 9.5220, lng: 76.8700, emission: 'high', me: 'high', ni: 'medium' },
+    { name: 'Uzhavoor', lat: 9.7982, lng: 76.5957, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Kangazha', lat: 9.5296, lng: 76.6756, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Kaduthuruthy', lat: 9.7657, lng: 76.4703, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Athirampuzha', lat: 9.6696, lng: 76.5432, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Ayarkunnam', lat: 9.6524, lng: 76.5924, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Vakathanam', lat: 9.5123, lng: 76.5611, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Aymanam', lat: 9.6178, lng: 76.5064, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Anakkal', lat: 9.6011, lng: 76.6795, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Thalayolaparambu', lat: 9.7723, lng: 76.4819, emission: 'low', me: 'low', ni: 'low' },
+
+    { name: 'Munnar', lat: 10.0889, lng: 77.0650, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Kattappana', lat: 9.5966, lng: 77.0812, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Devikulam', lat: 10.0951, lng: 77.0586, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Nedumkandam', lat: 9.6398, lng: 77.0741, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Adimaly', lat: 9.6632, lng: 77.0795, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Bharananganam', lat: 9.6120, lng: 76.7980, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Idukki Dam', lat: 9.6965, lng: 77.1004, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Thodupuzha', lat: 9.9317, lng: 77.0781, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Vathikudy', lat: 9.6796, lng: 77.0771, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Kochi', lat: 9.9312, lng: 76.2673, emission: 'high', me: 'high', ni: 'medium' },
+    { name: 'Kumarakom', lat: 9.6173, lng: 76.4339, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Muthalakodam', lat: 9.7251, lng: 77.1189, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Karimannoor', lat: 9.9031, lng: 77.0731, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Mankulam', lat: 10.0750, lng: 77.0355, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Konnathady', lat: 9.7218, lng: 77.0822, emission: 'medium', me: 'medium', ni: 'medium' },
+
+    { name: 'Kochi', lat: 9.9312, lng: 76.2673, emission: 'high', me: 'high', ni: 'medium' },
+    { name: 'Fort Kochi', lat: 9.9656, lng: 76.2210, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Ernakulam', lat: 9.9816, lng: 76.2999, emission: 'high', me: 'high', ni: 'medium' },
+    { name: 'Mattancherry', lat: 9.9639, lng: 76.2510, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Kumbalam', lat: 9.9311, lng: 76.2950, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Palarivattom', lat: 9.9918, lng: 76.2956, emission: 'high', me: 'high', ni: 'medium' },
+    { name: 'Kochi Marine Drive', lat: 9.9805, lng: 76.2820, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Kaloor', lat: 9.9735, lng: 76.2934, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Edapally', lat: 10.0013, lng: 76.3096, emission: 'high', me: 'high', ni: 'medium' },
+    { name: 'Thoppumpady', lat: 9.9531, lng: 76.2851, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Cheranelloor', lat: 9.9661, lng: 76.2622, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Kochi International Airport', lat: 10.1522, lng: 76.3965, emission: 'high', me: 'high', ni: 'medium' },
+    { name: 'Vypin Island', lat: 10.0475, lng: 76.2154, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Paravur', lat: 10.0780, lng: 76.2616, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Kumbalangi', lat: 9.9087, lng: 76.2923, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Mulavukad', lat: 10.0224, lng: 76.3081, emission: 'medium', me: 'medium', ni: 'medium' },
+
+    { name: 'Kannur', lat: 11.8745, lng: 75.3704, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Thalassery', lat: 11.7472, lng: 75.4746, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Payyannur', lat: 11.7754, lng: 75.5613, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Iritty', lat: 11.8740, lng: 75.7303, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Mattanur', lat: 11.8893, lng: 75.4801, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Kakkad', lat: 11.7585, lng: 75.4572, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Kottiyoor', lat: 11.8203, lng: 75.6404, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Sreekandapuram', lat: 11.8612, lng: 75.5741, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Dharmadam', lat: 11.8685, lng: 75.5136, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Kannur International Airport', lat: 11.9420, lng: 75.4876, emission: 'high', me: 'high', ni: 'medium' },
+    { name: 'Valapattanam', lat: 11.7724, lng: 75.4560, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Kalliasseri', lat: 11.8042, lng: 75.4712, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Panoor', lat: 11.7862, lng: 75.6843, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Peravoor', lat: 11.7942, lng: 75.7408, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Muzhakkunnu', lat: 11.8600, lng: 75.6788, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Kottayam Kavu', lat: 11.8651, lng: 75.4931, emission: 'low', me: 'low', ni: 'low' },
+
+    { name: 'Kasargod', lat: 12.4996, lng: 75.0269, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Kanjangad', lat: 12.4933, lng: 75.0469, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Vellarikundu', lat: 12.5233, lng: 75.1722, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Kasaragod Fort', lat: 12.5071, lng: 75.0460, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Puttur', lat: 12.5902, lng: 75.2984, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Badiadka', lat: 12.5556, lng: 75.1143, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Mangalpady', lat: 12.5024, lng: 75.0580, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Manjeshwar', lat: 12.6834, lng: 75.1741, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Neeleswaram', lat: 12.5572, lng: 75.0995, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Kasaragod Railway Station', lat: 12.4931, lng: 75.0381, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Cheruvathur', lat: 12.5326, lng: 75.0876, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Nileshwar', lat: 12.6468, lng: 75.2034, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Muthanga', lat: 12.6814, lng: 75.2336, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Kottamparamba', lat: 12.4921, lng: 75.0224, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Kumbla', lat: 12.5960, lng: 75.0450, emission: 'low', me: 'low', ni: 'low' },
+
+
+    { name: 'Kozhikode', lat: 11.2588, lng: 75.7804, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Kozhikode Beach', lat: 11.2572, lng: 75.7787, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Malabar Christian College', lat: 11.2758, lng: 75.7758, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Calicut University', lat: 11.2545, lng: 75.8307, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Thusharigiri', lat: 11.4200, lng: 75.7956, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Kappad Beach', lat: 11.5260, lng: 75.4830, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Wayanad Road', lat: 11.2466, lng: 75.7953, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Beypore', lat: 11.1944, lng: 75.7479, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Ferokh', lat: 11.1751, lng: 75.8274, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Peruvayal', lat: 11.2583, lng: 75.7942, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Puthiyangadi', lat: 11.2523, lng: 75.7905, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Calicut Medical College', lat: 11.2660, lng: 75.7734, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Nellikkunnu', lat: 11.2835, lng: 75.7785, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Vadakara', lat: 11.6094, lng: 75.5914, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Elathur', lat: 11.2615, lng: 75.8650, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Vatakara', lat: 11.6100, lng: 75.5917, emission: 'medium', me: 'medium', ni: 'medium' },
+
+    { name: 'Thrissur', lat: 10.5276, lng: 76.2144, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Guruvayur', lat: 10.5921, lng: 76.0414, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Vadakancherry', lat: 10.5133, lng: 76.5917, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Chalakudy', lat: 10.3076, lng: 76.3375, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Irinjalakuda', lat: 10.3264, lng: 76.2361, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Kunnamkulam', lat: 10.6426, lng: 76.0654, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Ollur', lat: 10.5411, lng: 76.2934, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Puthukkad', lat: 10.5504, lng: 76.3914, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Thrissur Zoo', lat: 10.5260, lng: 76.2100, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Wadakanchery', lat: 10.5417, lng: 76.5850, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Chavakkad', lat: 10.5396, lng: 76.0571, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Peringottukara', lat: 10.5484, lng: 76.3768, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Kodungallur', lat: 10.2224, lng: 76.2013, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Mulankunnathukavu', lat: 10.5328, lng: 76.3130, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Koratti', lat: 10.5272, lng: 76.2056, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Kudakkachira', lat: 10.5015, lng: 76.3244, emission: 'medium', me: 'medium', ni: 'medium' },
+
+    { name: 'Kalpetta', lat: 11.6101, lng: 76.0826, emission: 'low', me: 'medium', ni: 'medium' },
+    { name: 'Sultan Bathery', lat: 11.6739, lng: 76.2561, emission: 'low', me: 'medium', ni: 'medium' },
+    { name: 'Mananthavady', lat: 11.6085, lng: 76.0712, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Vythiri', lat: 11.6470, lng: 76.0718, emission: 'low', me: 'medium', ni: 'medium' },
+    { name: 'Pulpally', lat: 11.6425, lng: 76.3112, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Meppadi', lat: 11.6102, lng: 76.5639, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Edakkal Caves', lat: 11.6460, lng: 76.6484, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Banasura Sagar Dam', lat: 11.4913, lng: 76.1281, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Lakkidi', lat: 11.6025, lng: 76.4262, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Kuruva Island', lat: 11.6924, lng: 75.9925, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Churuli', lat: 11.6301, lng: 76.3568, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Thirunelli', lat: 11.6270, lng: 76.2711, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Ambalavayal', lat: 11.6161, lng: 76.2720, emission: 'medium', me: 'medium', ni: 'medium' },
+    { name: 'Kottathalachi', lat: 11.6343, lng: 76.1499, emission: 'low', me: 'low', ni: 'low' },
+    { name: 'Muthanga Wildlife Sanctuary', lat: 11.6154, lng: 76.0241, emission: 'low', me: 'low', ni: 'low' }
+
+
+
+
+]
+
+
+        // Initialize the map
+        const map = L.map('map').setView([9.5550, 76.7856], 12);
+
+        // Set up the tile layer from OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Function to add markers based on location data
+        locations.forEach(location => {
+            const color = location.emission === 'high' ? 'red' : 'green';
+            const marker = L.circleMarker([location.lat, location.lng], {
+                radius: 10,
+                color: color,
+                fillColor: color,
+                fillOpacity: 0.8
+            }).addTo(map).bindPopup('<strong>' + location.name + '</strong><br>Carbon Emission: ' + location.emission + '</strong><br>Methane Emission: ' + location.me + '</strong><br>Nitrous Oxide Emission: ' + location.ni);
+        });
+
+        // Search function to find and zoom to the location
+        function searchLocation() {
+            const input = document.getElementById('locationInput').value.toLowerCase();
+            const location = locations.find(loc => loc.name.toLowerCase() === input);
+
+            if (location) {
+                // Zoom in and center to the searched location
+                map.setView([location.lat, location.lng], 14);
+            } else {
+                alert("Location not found. Please try again.");
+            }
+        }
+    </script>
+</body>
+</html>
